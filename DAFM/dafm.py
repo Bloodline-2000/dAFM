@@ -15,6 +15,8 @@ import numpy as np
 from keras.constraints import max_norm, non_neg, unit_norm
 np.random.seed(42)
 from math import sqrt
+from DAFM.binary_layers import BinaryDense
+import tensorflow as tf
 import os
 import sys
 
@@ -35,9 +37,11 @@ class DeepAFM:
     def custom_bce(self, y_true, y_pred):
         b = K.not_equal(y_true, -K.ones_like(y_true))
         b = K.cast(b, dtype='float32')
-        ans = K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1) * K.mean(b, axis=-1)
+        loss = K.mean(K.binary_crossentropy(K.cast(y_true, dtype='float32'), y_pred), axis=-1)
+        ans = loss * K.mean(b, axis=-1)
         ans = K.cast(ans, dtype='float32')
-        return np.sum(ans)
+        # tf.enable_eager_execution()
+        return K.sum(ans)
 
     def custom_activation(self, x):
         if self.activation.split('-')[0] == "custom":
